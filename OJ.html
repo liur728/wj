@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"="width=device-width, initial-scale=1.0">
+  <title>待办事项管理器</title>
+  <style>/* 相互协调，营造出一个舒适、美观的视觉环境。这可以提高用户在使用过程中的满意度，减少视觉疲劳。*/
+   
+    body {
+      font-family: Kaiti;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    #z {
+      padding: 10px;
+      width: 800px;
+      height: 100%;
+      margin: 0 auto;
+      background-color: antiquewhite;
+      border-radius: 35px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      animation: h1 4s linear;/*添加动画效果*/
+      box-shadow: 0 0 10px #d3e7ee,
+                         0 0 30px  #d3e7ee,
+                         0 0 60px   #d3e7ee;
+
+    }
+
+    #newTaskInput {
+      width: 300px;
+      padding: 10px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #007BFF;
+      color: white;
+      /*字体颜色*/
+      border: none;/*去除按钮默认的边框*/
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      background-color: white;
+      padding: 19px;/*设置文本内容内边距，因为优先级和日期板块已经脱离文档流，所以不受影响*/
+      padding-bottom: 2px;
+      margin-bottom: 10px;/*控制外边距*/
+      border-radius: 5px; 
+       position: relative; /*为绝对定位的子元素提供相对定位的容器,使使用了absolute的板块显示在规定的列表项中*/
+      
+    }
+  .deleteButton {
+      background-color: #bbdc35;
+      color: white;
+      padding: 5px 5px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      position: absolute;
+      right: 2px;
+      top: 17px;
+    }
+
+  .prioritySelect {
+      padding: 5px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 50px;
+    }
+
+    /* 调整优先级和字数显示宽度,并定位其位置 */
+    .priority-span {
+position: absolute;
+top: 0;
+left: 4px;
+width: 80px;
+border-right: black 2px dashed;
+}
+.time-span{
+  position: absolute; 
+top: 0;
+left: 100px;
+width: 400px;
+
+}
+    /* 为不同优先级的ul设置不同颜色 */
+    #highPriorityList {
+      background-color: lightcoral;
+    }
+
+    #mediumPriorityList {
+      background-color: lightblue;
+    }
+
+    #lowPriorityList {
+      background-color: lightgreen;
+    }
+
+    /* 设置不同优先级任务文本颜色 */
+  .high-priority-text {
+      color: lightcoral;
+    }
+
+  .medium-priority-text {
+      color: lightblue;
+    }
+
+  .low-priority-text {
+      color: lightgreen;
+    }
+    .task-content {
+      font-size: 22px;
+      
+    }
+    .completed >*{
+      /*添加删除线*/
+      color: #ccc;
+      text-decoration: inherit;/*需要让其孩子即子类继承到删除线属性，默认不继承*/
+      text-decoration: line-through;
+    }
+    @keyframes h1{
+      0%{
+        opacity: 0.1;
+      }
+      50%{
+        opacity: 0.3;
+        color: gray;
+      }
+      75%{
+        opacity: 0.6;
+        color: #f4f4f4;
+      }
+      100%{
+        opacity: 1;
+        
+      }
+    }
+    .enlarged{
+      width: 340px;
+      height:27px;
+      background-color: aquamarine;
+    }
+    #addTaskButton:hover{
+      background-color: cornflowerblue;
+      border-radius: 50px;
+    }
+    #fanhui{
+      position: fixed;
+      right:2px;
+      bottom:20px;
+      font-size: 30px;
+      font-family: Kaiti;
+    }
+  </style>
+</head>
+  </style>
+</head>
+
+<body>
+  <div id="z">
+    <h1>待办事项管理器</h1>
+    <input type="text" id="newTaskInput" placeholder="添加新事情">
+
+    <select id="prioritySelect" class="prioritySelect">
+
+      <option value="A">等级:A</A></option>
+      <option value="B">等级:B</option>
+      <option value="C">等级:C</option>
+    </select>
+    <button id="addTaskButton">确认添加</button>
+    <ul id="highPriorityList"></ul>
+    <ul id="mediumPriorityList"></ul>
+    <ul id="lowPriorityList"></ul>
+    
+  </div>
+  <a href="#z"><span id="fanhui">返回</span></a>
+  <script>
+    // 获取元素信息
+    var newTaskInput = document.getElementById('newTaskInput');//获取文本框内容
+    var addTaskButton = document.getElementById('addTaskButton');//获取按钮
+    var highPriorityList = document.getElementById('highPriorityList');//获取高优先级任务列表
+    var mediumPriorityList = document.getElementById('mediumPriorityList');//获取中优先级任务列表
+    var lowPriorityList = document.getElementById('lowPriorityList');//获取低优先级任务列表
+    var prioritySelect = document.getElementById('prioritySelect');//获取下拉列表框
+
+   
+    newTaskInput.addEventListener('click', () => {//为输入框添加监听器，当点击输入框时，为其添加一个类为enlarged用来放大
+
+   newTaskInput.classList.add('enlarged');
+  });
+    addTaskButton.addEventListener('click', () => {//点击确认添加按钮时，移除该类，恢复为原来的效果
+    
+  newTaskInput.classList.remove('enlarged');
+  });
+
+  
+
+    // 添加任务
+    addTaskButton.addEventListener('click', () => {
+      var taskText = newTaskInput.value;
+      var selectedPriority = prioritySelect.value;
+      if (taskText) {
+        
+        var li = document.createElement('li');
+         var taskContentText = document.createElement('span');
+         taskContentText.innerText = 'Thing: '+taskText;
+         taskContentText.classList.add('task-content');//添加一个类名
+
+        var prioritySpan = document.createElement('span');
+        prioritySpan.innerText = "优先级:" +" "+selectedPriority;
+        prioritySpan.classList.add('priority-span');
+        // 根据优先级设置任务文本颜色类名
+        if (selectedPriority == "A") {
+          li.classList.add('high-priority-text');
+        } else if (selectedPriority == "B") {
+          li.classList.add('medium-priority-text');
+        } else {
+          li.classList.add('low-priority-text');
+        }
+
+
+        // 添加创建时间显示功能，追溯任务历史或者按照时间顺序处理任务
+        var now = new Date();
+var year = now.getFullYear();
+var month = (now.getMonth() + 1).toString().padStart(2, '0');//padStart是JavaScript字符串的一个方法,用于在字符串的左侧填充指定的字符
+var day = now.getDate().toString().padStart(2, '0');//toString()返回一个字符串，方便调用padStart方法
+var hour = now.getHours().toString().padStart(2, '0');
+var minute = now.getMinutes().toString().padStart(2, '0');
+var second = now.getSeconds().toString().padStart(2, '0');
+var formattedTime = year + '/' + month + '/' + day + ',' + hour + ':' + minute + ':' + second;
+var timeSpan = document.createElement('span');//timeSpan是一个元素对象，而span只是一个字符串，无classList方法
+timeSpan.innerText = '创建时间:'+ formattedTime;
+        timeSpan.classList.add('time-span');//给timeSpan添加一个类名字。
+        // 删除按钮，及时清理任务列表，保持列表的整洁和有效性。
+        var deleteButton = document.createElement('button');
+        deleteButton.innerText = '删除';
+        deleteButton.className = 'deleteButton';
+        deleteButton.addEventListener('click', () => {//不需要通过e.target去重新确定触发事件的元素（因为已经知道是 deleteButton 被点击了）,所以不需要传入e，接下来的操作与e包含的信息无关
+          var parentList = li.parentNode;//parentNode就是DOM元素（即每一个元素如：p,span等等）的一个属性，它返回当前元素的父元素节点。即返回对应ul
+          parentList.removeChild(li);//调用父元素的removeChild(),移除该li元素
+          
+        });
+        //把创建好的板块都加入到li上
+        li.appendChild(prioritySpan);
+        li.appendChild(taskContentText);
+        li.appendChild(timeSpan);
+        li.appendChild(deleteButton);
+
+        if (selectedPriority == "A") {
+          highPriorityList.appendChild(li);//把li加到相应的ul区域上
+        } else if (selectedPriority == "B") {
+          mediumPriorityList.appendChild(li);
+        } else {
+          lowPriorityList.appendChild(li);
+        }
+
+        newTaskInput.value = '';//将文本框内容重置，方便下一次输入
+        var taskObj = {
+            text: taskText,
+            priority: selectedPriority,
+            createTime: formattedTime
+        };
+
+        // 从本地存储获取已有的任务列表（如果有），初始化为空数组
+        var tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        // 将新任务对象添加到任务列表数组
+        tasks.push(taskObj);
+
+        // 将更新后的任务列表数组保存到localStorage中
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    });
+    // 标记任务完成 
+    // 分别为不同优先级列表ul添加点击事件处理标记完成功能，跟踪任务进度，方便对已完成和未完成的任务进行区分。
+    highPriorityList.addEventListener('click', (e) => {//e,事件触发后会传入一个事件对象作为参数，创建一个点击事件对象，把事件发生的目标元素、事件的类型，鼠标位置等收集起来，收集到的是一个大片区域，所以需要传入e，方便后续操作，这里为点击事件
+      if (e.target.tagName == 'LI') {          //tagName用来获取html标签名，返回的为标签的大写形式
+        e.target.classList.toggle('completed');//target，事件对象e的一个属性，用于获取某一元素，这里为鼠标点击的li元素，classList，元素的一个属性，返回一个对象，用于操作元素的类名，toggle，classList中的一个方法，用于添加或删除该类名
+        var liIndex = Array.from(highPriorityList.children).indexOf(e.target);
+        var tasks = JSON.parse(localStorage.getItem('tasks'));
+        tasks[liIndex].isCompleted = e.target.classList.contains('completed');
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    });//根据触发事件的元素（e.target）当前是否具有 'completed' 类名，来动态地添加或移除这个类名
+
+    mediumPriorityList.addEventListener('click', (e) => {
+      if (e.target.tagName == 'LI') {
+        e.target.classList.toggle('completed');
+        var liIndex = Array.from(highPriorityList.children).indexOf(e.target);
+        var tasks = JSON.parse(localStorage.getItem('tasks'));
+        tasks[liIndex].isCompleted = e.target.classList.contains('completed');
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    });
+
+    lowPriorityList.addEventListener('click', (e) => {
+      if (e.target.tagName == 'LI') {
+        e.target.classList.toggle('completed');
+        var liIndex = Array.from(highPriorityList.children).indexOf(e.target);
+        var tasks = JSON.parse(localStorage.getItem('tasks'));
+        tasks[liIndex].isCompleted = e.target.classList.contains('completed');
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    });
+    window.onload = function () {
+      var tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.forEach(task => {
+        var li = document.createElement('li');
+        var taskContentText = document.createElement('span');
+        taskContentText.innerText = 'Thing: ' + task.text;
+        taskContentText.classList.add('task-content');
+
+        var prioritySpan = document.createElement('span');
+        prioritySpan.innerText = "优先级:" + " " + task.priority;
+        prioritySpan.classList.add('priority-span');
+
+        if (task.priority == "A") {
+          li.classList.add('high-priority-text');
+        } else if (task.priority == "B") {
+          li.classList.add('medium-priority-text');
+        } else {
+          li.classList.add('low-priority-text');
+        }
+
+        var timeSpan = document.createElement('span');
+        timeSpan.innerText = '创建时间:' + task.createTime;
+        timeSpan.classList.add('time-span');
+
+        // 如果任务已标记完成，添加相应类名
+        if (task.isCompleted) {
+          li.classList.add('completed');
+        }
+
+        var deleteButton = document.createElement('button');
+        deleteButton.innerText = '删除';
+        deleteButton.className = 'deleteButton';
+        deleteButton.addEventListener('click', () => {
+          var parentList = li.parentNode;
+          parentList.removeChild(li);
+          // 删除任务后更新本地存储数据（重新获取任务列表，移除对应任务对象，再保存）
+          var tasks = JSON.parse(localStorage.getItem('tasks'));
+          var liIndex = Array.from(parentList.children).indexOf(li);
+          tasks.splice(liIndex, 1);
+          localStorage.setItem('tasks', JSON.stringify(tasks));
+        });
+
+        li.appendChild(prioritySpan);
+        li.appendChild(taskContentText);
+        li.appendChild(timeSpan);
+        li.appendChild(deleteButton);
+
+        if (task.priority == "A") {
+          highPriorityList.appendChild(li);
+        } else if (task.priority == "B") {
+          mediumPriorityList.appendChild(li);
+        } else {
+          lowPriorityList.appendChild(li);
+        }
+      });
+    };
+  </script>
+</body>
+
+</html>
